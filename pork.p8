@@ -5,12 +5,14 @@ __lua__
 function _init()
  t=0
  p_ani={240,241,242,243}
+ dirx={-1,1,0,0} --lrud
+ diry={0,0,-1,1}
  _upd=update_game
  _drw=draw_game
  startgame()
 end
 
-function _update()
+function _update60()
  t+=1
  _upd()
 end
@@ -24,40 +26,35 @@ function startgame()
  p_y=6
  p_ox=0
  p_oy=0
+ p_sox=0
+ p_soy=0
+ p_t=0
 end
 
 -->8
 --updates
 function update_game()
- if btnp(⬅️) then
-  p_x-=1
- 	p_ox=8
- 	_upd=update_pturn
+ for i=0,3 do
+  if btnp(i) then
+   local dx,dy=dirx[i+1],diry[i+1]
+   p_x+=dx
+   p_y+=dy
+   p_sox, p_soy = dx*-8, dy*-8
+   p_ox,p_oy=p_sox,p_soy
+   p_t=0
+   _upd=update_pturn
+   return
+  end
  end
- if btnp(➡️) then
-  p_x+=1
-  p_ox=-8
- 	_upd=update_pturn
- end
- if btnp(⬆️) then
-  p_y-=1
-  p_oy=8
- 	_upd=update_pturn
- end
- if btnp(⬇️) then
-  p_y+=1
-  p_oy=-1
-  _upd=update_pturn
- end
- 
 end
 
 function update_pturn()
- if(p_ox>0) p_ox-=1
- if(p_ox<0) p_ox+=1
- if(p_oy>0) p_oy-=1
- if(p_oy<0) p_oy+=1
- if(p_ox==0 and p_oy==0) _upd=update_game
+ p_t=min( p_t+0.128, 1)
+ p_ox=p_sox * (1-p_t)
+ p_oy=p_soy * (1-p_t)
+ if p_t==1 then
+  _upd=update_game
+ end
 end
 
 function update_gameover()
@@ -67,17 +64,17 @@ end
 function draw_game()
   cls()
   map()
-  drawspr(frame(p_ani),p_x*8,p_y*8,8)
+  --drawspr(frame(p_ani),p_x*8,p_y*8,8)
   drawspr(frame(p_ani),p_x*8+p_ox,p_y*8+p_oy,10)
 end
 
 function draw_gameover()
-  return false
+
 end	
 -->8
 --models
 function frame(_ani)
- return _ani[flr(t/8)%#_ani+1]
+ return _ani[flr(t/16)%#_ani+1]
 end
 
 function drawspr(_spr,_x,_y,_c)
